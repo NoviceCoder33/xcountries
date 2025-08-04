@@ -25,6 +25,7 @@ export default function Countries() {
           setCountries(res.data);
           
         } catch (error) {
+          console.error('Error fetching data:', error);
           setError(error);
         }
       };
