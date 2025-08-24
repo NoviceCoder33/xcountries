@@ -1,10 +1,13 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react';
 import axios from "axios";
 
 export default function Countries() {
     const [countries, setCountries] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
     const [error, setError] = useState(null);
-     
+    const [loading, setLoading] = useState(true);
+
+    // Example with fetch (keeping your commented code here)
     // useEffect(() => {
     //     fetch('https://xcountries-backend.azurewebsites.net/all')
     //       .then((res) => {
@@ -17,35 +20,87 @@ export default function Countries() {
     //         setError(err.message);
     //       });
     //   }, []);
-     useEffect(()=>{
-      const getData=async()=>{
-        try {
-          const res = await axios.get('https://xcountries-backend.azurewebsites.net/all')
-          console.log(res.data);
-          setCountries(res.data);
-          
-        } catch (error) {
-          console.error('Error fetching data:', error);
-          setError(error);
-        }
-      };
-      getData();
-     },[]);
-    
-    
-     if (error) return <p>Error: {error.message}</p>;
-     if (countries.length === 0) return <p>Loading...</p>;
 
-  return (
-    <div>
-      <div style={{display:"flex",flexDirection:"row",gap:5,flexWrap:"wrap"}}>
-      {countries.map((country, index) => (
-        <div style={{display:"flex",flexDirection:"column",gap:5, border:"1px solid lightgrey",borderRadius:"2px", alignItems:"center", justifyContent:"center"}}>
-        <img key={index} src={country.flag} alt={country.name} style={{ width: 200, height: 'auto' }} />
-        <p>{country.name}</p>
+    // Using axios for API call
+    useEffect(() => {
+        const getData = async () => {
+            try {
+                const res = await axios.get(
+                  'https://countries-search-data-prod-812920491762.asia-south1.run.app/countries'
+                );
+                console.log("API Data:", res.data);
+                setCountries(Array.isArray(res.data) ? res.data : []);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                setError(error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        getData();
+    }, []);
+
+    // Filter countries by searchTerm
+    const filteredCountries = countries.filter(country =>
+        country.common.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    return (
+        <div style={{ padding: "20px" }}>
+            {/* Search input */}
+            <input
+                type="text"
+                placeholder="Search countries..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{
+                    marginBottom: '20px',
+                    padding: '8px',
+                    width: '300px',
+                    fontSize: '16px',
+                    borderRadius: '4px',
+                    border: '1px solid #ccc'
+                }}
+            />
+
+            {/* Show error if any */}
+            {error && <p>Error: {error.message}</p>}
+
+            {/* Show loading */}
+            {loading && <p>Loading...</p>}
+
+            {/* Countries grid */}
+            <div style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "16px",
+                justifyContent: "flex-start"
+            }}>
+                {!loading && filteredCountries.length > 0 && filteredCountries.map((country, index) => (
+                    <div
+                        key={index}
+                        className="countryCard"
+                        style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            border: "1px solid lightgrey",
+                            borderRadius: "4px",
+                            padding: "10px",
+                            width: "220px",
+                            backgroundColor: "#fafafa"
+                        }}
+                    >
+                        <img
+                            src={country.png}
+                            alt={country.common}
+                            style={{ width: "200px", height: "auto", objectFit: "contain" }}
+                        />
+                        <p style={{ margin: "8px 0 0", fontWeight: "500" }}>{country.common}</p>
+                    </div>
+                ))}
+            </div>
         </div>
-      ))}
-    </div>
-    </div>
-  )
+    );
 }
